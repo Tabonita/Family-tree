@@ -1,0 +1,359 @@
+import datetime
+class Person():
+    def __init__(self,name,surname,gender,role):
+        self.name=name
+        self.surname=surname
+        self.birthday=0
+        self.death=0
+        self.gender=gender
+        self.role=role
+        self.children=[]
+        self.spouse=0
+        self.parents=[]
+        self.sibling=[]
+        self.generation=0
+        self.uncleaunt=[]
+        self.nephew=[]
+        self.grparents=[]
+    def __str__(self):
+        return self.name+' '+ self.surname #print
+    def name_and_surname(self):
+        print(self.name+' '+self.surname) 
+    def show_children(self):
+        for i in self.children:
+            print(i.name+' is '+self.name+"'s "+i.role+' and was born on '+str (i.birthday))
+    def who_is_the_oldest_child(self): #находит у человека самого старшего ребенка
+        for i in range(len(self.children)-1):
+            if (datetime.date.today()-self.children[i].birthday) > (datetime.date.today()-self.children[i+1].birthday):
+                self.children[i],self.children[i+1]=self.children[i+1],self.children[i]
+        print(str(self.children[-1])+' and is the oldest child')
+
+    def print_sibling(self):
+        for i in self.sibling:
+            print(i)
+    def print_info(self):
+        print (f'{self.name} {self.surname} was born on {str(self.birthday)} , gender {self.gender}, role in this Family tree: {self.role},generation {self.generation}') 
+        if len(self.children)>=1:
+            print('CHILDREN')
+            print_list(self.children)
+        if self.spouse!=0:
+            print(f'SPOUSE {str(self.spouse)}')
+        if len(self.parents)>=1:
+            print('PARENTS')
+            print_list(self.parents)
+        if len(self.sibling)>=1:
+            print('SIBLINGS')
+            print_list(self.sibling)
+        if len(self.uncleaunt)>=1:
+            print('Uncle , Aunt')
+            print_list(self.uncleaunt)
+        if len(self.nephew)>=1:
+            print('Niece or nephew')
+            print_list(self.nephew)
+        
+        
+def marriage(spouse1,spouse2):
+    spouse1.spouse=spouse2
+    spouse2.spouse=spouse1
+
+def children(spouse1,spouse2):
+    spouse2.children=spouse1.children
+
+def find_parents(mylist,child):
+    for i in mylist:
+        if child in i.children and len(child.parents)<=2:
+            child.parents.append(i)
+            
+def print_list(mylist):
+    for i in mylist:
+        print(i)
+
+
+def find_sibling(mylist,person):
+    for i in mylist:
+            if i!=person and len(i.parents)>1 and (i.parents[0] in person.parents or i.parents[1] in person.parents) and not i in person.sibling and not person in i.sibling:
+                i.sibling.append(person)
+                person.sibling.append(i)
+
+def print_grgrchildren(mylist,a,b,c):
+    for i in mylist:
+        c+=1
+        print(f'\t ***GRANDGRANDCHILD*** {a}.{b}.{c} {i.name.upper()} {i.surname.upper()} ')
+        
+
+    
+
+
+def print_family_ver1(mylist):
+    i=0
+    new_family_list=spouse_list(mylist)
+    for i in range(len(new_family_list)):
+        if i%2==0 or i==0 :
+            print(f'\tit is a family of {new_family_list[i]} and {new_family_list[i+1]}')
+        if len(new_family_list[i].children)!=0 and (i%2==0 or i==0) :
+            print('their children ')
+            print_list(new_family_list[i].children)
+        elif i%2==0 or i==0:
+            print('they dont have children YET')
+        if len(new_family_list[i].parents)>=1:
+            print(f'parents of {new_family_list[i].name} {new_family_list[i].surname}')
+            print_list(new_family_list[i].parents)
+            
+def find_grparents(mylist,person):
+    for i in mylist:
+        if len(i.children)>=1 and person in i.children:
+            person.grparents+=i.parents
+            
+def uncle_nephew(mylist,child):
+    for i in mylist:
+        if child.parents[0] in i.sibling or child.parents[1] in i.sibling:
+            child.uncleaunt.append(i)
+            i.nephew.append(child)
+            
+
+
+def person_input():
+    agree=True
+    while agree:
+        a=Person(name=input('enter persons name '),surname=input('enter persons surname '),gender=input('enter persons gender-f or m ').lower(),role=input('enter persons family role '))
+      
+        while not a.name.isalpha():
+            a.name=input('We dont need numbers or symbols in name ')
+        
+        while not a.surname.isalpha():
+            a.surname=input('We dont need numbers or symbols in surname')
+        
+        while not a.gender.isalpha() and a.gender.lower() not in ['f','m']:
+            a.gender=input('gender should be f or m ')
+        
+        while not a.role.isalpha():
+            a.role=input('We dont need numbers or symbols in family role')
+    
+
+        while True:
+            try:
+                a.generation=int(input('Enter generation level '))
+            except ValueError:
+                print('try one more time with generation level ')
+            else:
+                break
+        
+        while True:
+            try:
+                year,month,date=map(int, input('input persons birthday in format YYYY-MM-DD ').split('-')) 
+                a.birthday=datetime.date(year,month,date)
+            except ValueError:
+                print('try one more time, it should be numbers in format YYYY-MM-DD ') 
+            else:
+                break
+        
+        a.print_info()
+        
+        answer=input('is this information correct-y or n? ')
+        if answer[0]!='y':
+            a=Person(name='',surname='',gender='',role='')
+            a.birthday=0
+            a.generation=0
+            print('There were mistakes in your input, now you can correct them')
+            agree=True
+        else:
+            print('Thanks for the data\n')
+            agree=False
+            return a
+
+        
+def creating_list(): #создает список с первым человеком из 1 поколения , его супругой и детьми
+    mylist=[]
+    print('''\tNow I am going to create a list of the family members. 
+             Some important info: you can enter maximum 4 generations! 
+             1,2,3,4, where 1 means the oldest generation and 4 the youngest. 
+             You can also enter less generations,if you want. You should start from generation 1 ''')
+    person_1=person_input()
+    mylist.append(person_1)
+    answer=input(f'does {person_1} have a spouse?-y or n ')
+    if answer=='y':
+        person_2=person_input()
+        marriage(person_1, person_2)
+        mylist.append(person_2)
+    answer=''
+    answer=input(f'does {person_1} have children?-y or n ')
+    if answer=='y':
+        answer=''
+        while True:
+            try:
+                answer=int(input(f'how many children does {person_1} have? max is 10  '))
+            except ValueError:
+                print('I need a number ')
+            else:
+                break
+        i=1
+        while i<=answer:
+            print(f'\nchild{i}')
+            person=person_input()
+            person_1.children.append(person)
+            if person_1.spouse!=0:
+                children(person_1,person_2)
+            mylist.append(person)
+            i+=1
+        
+    return mylist
+
+def creating_list_for_existing_person(a): #кусок кода, который добавляет новых людей в список
+    mylist=[]
+    answer=input(f'does {a} have a spouse?-y or n ')
+    if answer=='y':
+        person_2=person_input()
+        marriage(a, person_2)
+        mylist.append(person_2)
+    answer=''
+    answer=input(f'does {a} have children?-y or n ')
+    if answer=='y':
+        answer=''
+        while True:
+            try:
+                answer=int(input(f'how many children does {a} have? max is 10  '))
+            except ValueError:
+                print('I need a number ')
+            else:
+                break
+        i=1
+        while i<=answer:
+            print(f'child{i}')
+            person=person_input()
+            a.children.append(person)
+            if a.spouse!=0:
+                children(a,person_2)
+            mylist.append(person)
+            i+=1
+
+    if len(mylist)>0:    
+        return mylist
+    
+def sub_list(mylist): # перебирает всех людей в сущ списке и создает новый список с детьми и супругами для тех. у кого их еще не было в пред списке
+    new_list=[]
+    combo_list=[]
+    for i in mylist:
+        if type(i.spouse)==int and len(i.children)==0:
+            new_list=creating_list_for_existing_person(i)
+            if type(new_list)==list:
+                combo_list+=new_list
+    if type(combo_list)==list and len(combo_list)>0:
+        return combo_list
+
+def spouse_list(mylist): # создает список женатых и замужних
+    spouse_list=[]
+    
+    for k in mylist:
+        if k.spouse!=0 and k.gender=='f':
+            spouse_list.append(k.spouse)
+            spouse_list.append(k)
+    mylist=spouse_list
+    return mylist
+
+def generation_splitter(mylist,gen): # разделяет список по поколениям 
+    mylist_0=[]
+    for i in spouse_list(mylist):
+        if i.generation==gen:
+            mylist_0.append(i)
+    return mylist_0
+    
+def print_family_ver2(mylist,gen): 
+    spouse_list=generation_splitter(mylist,gen)
+    i=0
+    while i<len(spouse_list):
+        print(f'\n\t*PARENTS* {spouse_list[i].name.upper()} {spouse_list[i].surname.upper()} ({spouse_list[i].birthday}) and  {spouse_list[i+1].name.upper()} {spouse_list[i+1].surname.upper()} ({spouse_list[i+1].birthday})  ') #0 поколение
+        
+        if len(spouse_list[i].children)>=1:
+            a=0
+            for j in spouse_list[i].children:
+                if  j.spouse!=0: 
+                    a+=1
+                    print(f'\n\t**CHILD** {a} is {j.name.upper()} {j.surname.upper()}  ({j.birthday}) --> spouse {j.spouse} ({j.spouse.birthday}) ') 
+                    
+                    #1 поколение
+                    if type(j)==Person and len(j.children)>=1:
+
+                            b=0
+                            for k in j.children:
+                                if  k.spouse!=0: 
+                                    b+=1
+                                    print(f'\t***GRANDCHILD*** {a}.{b} {k.name.upper()} {k.surname.upper()} ({k.birthday}) ---> spouse {k.spouse} ({k.spouse.birthday})')# 2 поколение
+                                    
+                                    if len(k.children)!=0:
+                                        c=0
+                                        print_grgrchildren(k.children,a,b,c)
+                                        print('\t\t********************')
+                                
+                                    else:
+                                        print('\t\tno children yet')
+                                        print('\t\t********************')
+                                            
+                                else:
+                                    b+=1
+                                    print(f'\t***GRANDCHILD*** {a}.{b} {k.name.upper()} {k.surname.upper()} ({k.birthday})')
+                                    print('\t\tno spouse yet')
+                                    print('\t\tno children yet')
+                                    print('\t\t********************')
+                else:
+                    a+=1
+                    print(f'\t**CHILD** {a} is {j.name.upper()} {j.surname.upper()}  ({j.birthday})')
+                    print('\t\tno spouse yet')
+                    print('\t\tno children yet')
+                    print('\t\t********************')
+
+        i+=2
+        
+        
+ '''ТУТ НАЧИНАЕТСЯ САМА ПРОГРАММА'''
+ family_list=creating_list()
+print_list(family_list)
+answer=input('do you want to create one more generation?(2,3)-y or n?')
+if answer=='y':
+    family_list1=sub_list(family_list)
+    print_list(family_list)
+    print_list(family_list1)
+    answer=''
+    answer=input('do you want to create one more generation?(3,4)-y or n?')
+    if answer=='y':
+        family_list2=sub_list(family_list1)
+        final_list=list(family_list1+family_list2+family_list)
+    else:
+        final_list=list(family_list+family_list1)
+else:
+    final_list=list(family_list)
+
+
+
+for i in final_list:
+        find_parents(final_list,i)
+for i in final_list:
+            if len(i.parents)>=1:
+                find_sibling(final_list,i)
+decision=''
+decision=input('\nwould you like to see parents of different family members?')
+if decision=='y':
+    for i in final_list:
+        if len(i.parents)>=1:
+            print(f'parents of {i}')
+            print_list(i.parents)
+            
+decision=''
+decision=input('\nwould you like to see siblings of different family members?')
+if decision=='y':
+    for i in final_list:
+        if len(i.sibling)>=1:
+            print(f'siblings of {i}')
+            i.print_sibling()
+decision=0
+while True:
+    try:
+        decision=int(input('\nFrom which generation should I start?-1,2,or 3? '))
+        if decision in range(1,4):
+            print('\t\t Enjoy your Family TREE')
+            print_family_ver2(final_list,decision)
+        else:
+            print('Unfortunately there is not enough info about this generation ')
+    except ValueError:
+        print('Sorry, I need a number')
+    else:
+        break
